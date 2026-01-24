@@ -245,7 +245,7 @@ on:
         options:
           - ophub
           - angel
-          - yourname
+          - xcodebin
 
 env:
   TZ: Etc/UTC
