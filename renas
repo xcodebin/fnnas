@@ -111,7 +111,7 @@ root_mb="6144"
 # Set automatic expansion size for the system root partition (Unit: GiB)
 rootfs_expand="16"
 # Set fnnas builder signature
-builder_name=""
+builder_name="xcodebin"
 
 # Set font color
 STEPS="[\033[95m STEPS \033[0m]"
