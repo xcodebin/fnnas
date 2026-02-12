@@ -856,6 +856,7 @@ replace_kernel() {
 
     # Determine custom kernel filename
     kernel_boot="$(ls ${kernel_path}/${kernel}/${kernel}-${PLATFORM}/boot-${PLATFORM}-${kernel}*.tar.gz 2>/dev/null | head -n 1)"
+    [[ -n "${kernel_boot}" ]] || error_msg "Missing kernel boot file for [ ${kernel} ]"
     kernel_name="${kernel_boot##*/}"
     kernel_name="${kernel_name#boot-${PLATFORM}-}"
     kernel_name="${kernel_name%.tar.gz}"

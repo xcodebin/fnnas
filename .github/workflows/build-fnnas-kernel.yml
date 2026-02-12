@@ -13,19 +13,12 @@ on:
       fnnas_base_version:
         description: "Select fnnas base image version"
         required: false
-        default: "amlogic_389"
+        default: "amlogic_580"
         type: choice
         options:
-          - amlogic_389
-          - amlogic_338
-          - amlogic_322
-          - amlogic_300
-          - allwinner_335
-          - allwinner_317
-          - rockchip_388
-          - rockchip_330
-          - rockchip_321
-          - rockchip_296
+          - allwinner_619
+          - amlogic_580
+          - rockchip_641
       debs_repo:
         description: "Set fnnas debs repository"
         required: false
@@ -41,7 +34,7 @@ on:
           - rockchip
           - none
       dtbs_version:
-        description: "Set fnnas dtbs version"
+        description: "Set kernel dtbs version"
         required: false
         default: "6.12.y"
         type: choice

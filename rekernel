@@ -50,12 +50,12 @@ tmp_image="${tmp_path}/tmp_image"
 
 # Set the fnnas kernel debs files download repository from github.com
 debs_repo="https://github.com/ophub/fnnas"
-# Set the fnnas kernel dtbs version (e.g., 6.12.y)
-dtbs_version="6.12.y"
 # Installation of additional deb packages inside chroot(amlogic/allwinner/rockchip/none)
 debs_install="none"
 # By default, download and use dtbs files(true/yes)
-dtbs_install="false"
+dtbs_install="true"
+# Set kernel dtbs version(e.g., 6.12.y)
+dtbs_version="6.12.y"
 
 # Server information
 arch_info="$(uname -m)"
@@ -96,10 +96,9 @@ mount_try() {
         if [[ "${?}" -eq "0" ]]; then
             break
         else
-            sync && sleep 1
+            sync && sleep 3
             umount "${m_target}" 2>/dev/null
             ((t++))
-            sleep 1
         fi
     done
     [[ "${t}" -gt "${max_try}" ]] && error_msg "[ ${t} ] attempts to mount failed."
@@ -214,6 +213,13 @@ download_dtbs() {
         return
     fi
 
+    # Check if sufficient dtbs files already exist
+    dtbs_num="$(find "${fnnas_dtbs}" -type f -name "*.dtb" 2>/dev/null | wc -l)"
+    if [[ -n "${dtbs_num}" && "${dtbs_num}" -ge "456" ]]; then
+        echo -e "${NOTE} Sufficient kernel dtbs files already exist (${dtbs_num} files). Skipping download."
+        return
+    fi
+
     cd "${current_path}"
 
     # Get the latest version from github releases(e.g: 6.12.41)
@@ -301,7 +307,7 @@ unmount_fnnas() {
     echo -e "${STEPS} Unmounting fnnas chroot environment..."
     cd "${current_path}"
 
-    sync && sleep 2
+    sync && sleep 3
     # Unmount virtual filesystems
     umount -l "${tmp_fnnas}/dev/pts" 2>/dev/null
     umount -R -l "${tmp_fnnas}/dev" 2>/dev/null
@@ -323,6 +329,9 @@ unmount_fnnas() {
     rm -f ${tmp_fnnas}/root/chroot_fnnas.sh
     rm -f ${tmp_fnnas}/root/*.deb
     rm -rf ${tmp_path}
+    echo -e "${INFO} Temporary files cleaned."
+
+    sync && sleep 3
 }
 
 chroot_fnnas() {
@@ -382,7 +391,7 @@ chroot_fnnas() {
     mount -t devpts devpts "${tmp_fnnas}/dev/pts"
     mount --bind /run "${tmp_fnnas}/run"
     chmod 0666 "${tmp_fnnas}/dev/null"
-    sync && sleep 1
+    sync && sleep 3
 
     # Register trap to ensure unmount happens even if script is interrupted
     trap unmount_fnnas EXIT
@@ -418,11 +427,17 @@ chroot_fnnas() {
     # 1. Boot files
     cp -rf "${tmp_fnnas}/boot/"*${kernel_version} "${tmp_outpath}/boot/"
     # 2. DTB files: Based on flippy’s DTBs, use the official fnnas DTBs to overwrite files with the same names.
-    cp -rf "${fnnas_dtbs}/${platform_name}/"* "${tmp_outpath}/dtb/"
+    [[ "${dtbs_install}" =~ ^(true|yes)$ && -d "${fnnas_dtbs}/${platform_name}" ]] && {
+        echo -e "${INFO} Adding DTB files for platform: [ ${platform_name} ]..."
+        cp -rf "${fnnas_dtbs}/${platform_name}/"* "${tmp_outpath}/dtb/"
+    }
+    echo -e "${INFO} Copying DTB files from chroot..."
     cp -rf "${tmp_fnnas}/boot/dtb/${platform_name}/"* "${tmp_outpath}/dtb/"
     # 3. Modules
+    echo -e "${INFO} Copying modules from chroot..."
     cp -rf "${tmp_fnnas}/usr/lib/modules/${kernel_version}" "${tmp_outpath}/modules/"
     # 4. Headers
+    echo -e "${INFO} Copying headers from chroot..."
     cp -rf "${tmp_fnnas}/usr/src/linux-headers-${kernel_version}/"* "${tmp_outpath}/headers/"
 
     # Packaging into tar.gz
@@ -432,10 +447,12 @@ chroot_fnnas() {
     mkdir -p "${out_path}/${kernel_out}"
 
     # Create tar.gz files
-    tar -czf "${out_path}/${kernel_out}/boot-${platform_name}-${kernel_version}.tar.gz" -C "${tmp_outpath}/boot" .
-    tar -czf "${out_path}/${kernel_out}/dtb-${platform_name}-${kernel_version}.tar.gz" -C "${tmp_outpath}/dtb" .
-    tar -czf "${out_path}/${kernel_out}/modules-${platform_name}-${kernel_version}.tar.gz" -C "${tmp_outpath}/modules" .
-    tar -czf "${out_path}/${kernel_out}/header-${platform_name}-${kernel_version}.tar.gz" -C "${tmp_outpath}/headers" .
+    echo -e "${INFO} Creating kernel tar.gz files..."
+    (cd "${tmp_outpath}/boot" && tar -czf "${out_path}/${kernel_out}/boot-${platform_name}-${kernel_version}.tar.gz" *)
+    (cd "${tmp_outpath}/dtb" && tar -czf "${out_path}/${kernel_out}/dtb-${platform_name}-${kernel_version}.tar.gz" *)
+    (cd "${tmp_outpath}/modules" && tar -czf "${out_path}/${kernel_out}/modules-${platform_name}-${kernel_version}.tar.gz" *)
+    (cd "${tmp_outpath}/headers" && tar -czf "${out_path}/${kernel_out}/header-${platform_name}-${kernel_version}.tar.gz" *)
+    sync && sleep 3
 
     # Add sha256sum integrity verification file
     echo -e "${INFO} Generating sha256sums file..."
@@ -451,10 +468,11 @@ chroot_fnnas() {
 
 clean_tmp() {
     echo -e "${STEPS} Cleaning temporary files..."
-    unmount_fnnas
 
-    cd "${current_path}"
-    [[ -d "${tmp_path}" ]] && rm -rf "${tmp_path}"
+    # Remove trap to avoid double unmount
+    trap - EXIT
+    # Unmount fnnas base image
+    unmount_fnnas
 }
 
 #================================== Main Execution ==================================

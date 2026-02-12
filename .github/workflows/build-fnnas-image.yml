@@ -12,19 +12,12 @@ on:
       fnnas_base_version:
         description: "Select fnnas base image version"
         required: false
-        default: "amlogic_389"
+        default: "amlogic_580"
         type: choice
         options:
-          - amlogic_389
-          - amlogic_338
-          - amlogic_322
-          - amlogic_300
-          - allwinner_335
-          - allwinner_317
-          - rockchip_388
-          - rockchip_330
-          - rockchip_321
-          - rockchip_296
+          - allwinner_619
+          - amlogic_580
+          - rockchip_641
       fnnas_board:
         description: "Select fnnas device board"
         required: false
@@ -44,6 +37,9 @@ on:
           - alark35-3500
           - anas3035
           - aio-3399b
+          - aio-3399c
+          - aio-3399c-ai
+          - bdkj-bd-one
           - bdy-g18-pro
           - beikeyun
           - chainedbox
@@ -58,6 +54,7 @@ on:
           - eaidk-610
           - emb3531
           - fine3399
+          - firefly-jd4
           - firefly-rk3399
           - fmx1-pro
           - fmx1-pro-b
@@ -78,8 +75,10 @@ on:
           - lckfb-tspi
           - leez
           - lx-r3s
+          - lz-d3568
           - lz-k3568
           - mrkaio-m68s
+          - nanopc-t4
           - nanopc-t6
           - nanopi-m5
           - nanopi-r5c
@@ -96,6 +95,7 @@ on:
           - r68s
           - renegade-rk3328
           - rk3318-box
+          - rock-5-itx
           - rock5b
           - rock5c
           - ruisen-box
@@ -189,6 +189,7 @@ on:
           - smart-am60
           - station-m1
           - station-m2
+          - station-p2
           - sv-33a6x
           - swan1-w28
           - sw799
@@ -316,8 +317,7 @@ jobs:
 
           input_url="${{ inputs.fnnas_url }}"
           fnnas_base_version="${{ inputs.fnnas_base_version }}"
-          fnnas_img_id="${fnnas_base_version##*_}"
-          [[ -n "${fnnas_img_id}" ]] && build_tag="fnnas_v${fnnas_img_id}" || build_tag="fnnas_save"
+          [[ -n "${fnnas_base_version}" ]] && build_tag="fnnas_${fnnas_base_version}" || build_tag="fnnas_save"
 
           # -------------------------------------------------------
           # Case A: URL specified

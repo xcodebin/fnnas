@@ -45,10 +45,6 @@ inputs:
     description: "Set fnnas debs repository."
     required: false
     default: "ophub/fnnas"
-  dtbs_version:
-    description: "Set fnnas dtbs version."
-    required: false
-    default: "6.12.y"
   debs_install:
     description: "Install kernel debs files."
     required: false
@@ -56,7 +52,11 @@ inputs:
   dtbs_install:
     description: "Install kernel dtbs files."
     required: false
-    default: "false"
+    default: "true"
+  dtbs_version:
+    description: "Set kernel dtbs version."
+    required: false
+    default: "6.12.y"
 
 runs:
   using: "composite"
@@ -142,9 +142,9 @@ runs:
             cd ${{ github.action_path }}
             make_command=""
             [[ -n "${{ inputs.debs_repo }}" ]] && make_command="${make_command} -r ${{ inputs.debs_repo }}"
-            [[ -n "${{ inputs.dtbs_version }}" ]] && make_command="${make_command} -k ${{ inputs.dtbs_version }}"
             [[ -n "${{ inputs.debs_install }}" ]] && make_command="${make_command} -e ${{ inputs.debs_install }}"
             [[ -n "${{ inputs.dtbs_install }}" ]] && make_command="${make_command} -t ${{ inputs.dtbs_install }}"
+            [[ -n "${{ inputs.dtbs_version }}" ]] && make_command="${make_command} -k ${{ inputs.dtbs_version }}"
             read -r -a make_args <<< "${make_command}"
             sudo ./rekernel "${make_args[@]}"
 

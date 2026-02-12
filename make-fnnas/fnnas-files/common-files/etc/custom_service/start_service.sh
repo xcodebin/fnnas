@@ -146,5 +146,23 @@ if [[ -x "/usr/bin/oes_sata_leds.sh" ]]; then
     log_message "SATA status check service (oes_sata_leds.sh) started in background."
 fi
 
+# Add HDMI video mode parameter to GRUB configuration if not already present.
+fnnas_grub_file="/etc/default/grub"
+fnnas_add_param="video=HDMI-A-1:1920x1080@60e"
+[[ -f "${fnnas_grub_file}" ]] && {
+    if grep "^GRUB_CMDLINE_LINUX_DEFAULT" "${fnnas_grub_file}" | grep -q "video=HDMI"; then
+        log_message "HDMI video parameter already exists in GRUB configuration."
+    else
+        log_message "Adding HDMI video parameter to GRUB configuration."
+        # Backup the original GRUB configuration file
+        cp "${fnnas_grub_file}" "${fnnas_grub_file}.bak"
+        # Append the HDMI video parameter
+        sed -i "s/^\(GRUB_CMDLINE_LINUX_DEFAULT=\".*\)\"$/\1 ${fnnas_add_param}\"/" "${fnnas_grub_file}"
+        # Update GRUB configuration in the background
+        /usr/sbin/update-grub >/dev/null 2>&1 &
+        log_message "GRUB configuration updated and changes applied."
+    fi
+}
+
 # Finalization
 log_message "All custom services have been processed."
