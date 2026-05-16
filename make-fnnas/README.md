@@ -1,6 +1,6 @@
 # Directory Description
 
-View Chinese description | [查看中文说明](README.cn.md)
+[English Instructions](README.md) | [中文说明](README.cn.md)
 
 The relevant directories contain files required for building FnNAS.
 

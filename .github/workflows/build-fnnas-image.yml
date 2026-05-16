@@ -12,26 +12,26 @@ on:
       fnnas_base_version:
         description: "Select fnnas base image version"
         required: false
-        default: "amlogic_693"
+        default: "rockchip_1253"
         type: choice
         options:
-          - allwinner_691
+          - amlogic_1252
           - amlogic_693
+          - rockchip_1253
           - rockchip_692
+          - allwinner_1254
+          - allwinner_691
       fnnas_board:
         description: "Select fnnas device board"
         required: false
         default: "all"
         type: choice
         options:
-          - all
-          - first50
-          - range50_100
-          - range100_150
-          - last20
-          - a311d-oes_s922x-oes-plus_wxy-oect
-          - nsy-g16-plus_nsy-g68-plus_bdy-g18-pro
-          - s905d_s905x3_s912_s922x-ct2000
+          - allwinner
+          - amlogic
+          - rockchip50
+          - rockchip50_100
+          - rockchip100_150
           - a311d
           - a311d-oes
           - alark35-3500
@@ -42,6 +42,10 @@ on:
           - bdkj-bd-one
           - bdy-g18-pro
           - beikeyun
+          - boca-tcn100
+          - boca-tcn200
+          - bt-100m
+          - bt-1000m
           - cd1000
           - chainedbox
           - cm3588-nas
@@ -55,6 +59,7 @@ on:
           - eaidk-610
           - emb3531
           - fine3399
+          - firefly-itx-3588j
           - firefly-jd4
           - firefly-rk3399
           - fmx1-pro
@@ -62,6 +67,7 @@ on:
           - gea-6319
           - gzpeite-p01
           - h28k
+          - h618-devboard
           - h66k
           - h68k
           - h69k
@@ -72,12 +78,17 @@ on:
           - hs530r
           - ht2
           - hugsun-x99
+          - indiedroid-nova
           - ipc-r
           - jp-tvbox
           - king3399
           - kylin3399
           - lckfb-tspi
+          - lckfb-tspi-3m
           - leez
+          - lubancat-1
+          - lubancat-2
+          - lubancat-4
           - lx-r3s
           - lyt-t68m
           - lz-d3568
@@ -95,6 +106,7 @@ on:
           - orangepi-5-plus
           - orangepi-5b
           - orangepi-zero3
+          - painet-p3
           - panther-x2
           - photonicat
           - r66s
@@ -111,6 +123,7 @@ on:
           - s905d
           - s905d-ki-pro
           - s905d-sml5442tw
+          - s905d3-khadas-vim3l
           - s905l
           - s905l-aurora-1s
           - s905l-b860av21u
@@ -161,6 +174,7 @@ on:
           - s905x3-ip1001m
           - s905x3-q1
           - s905x3-q2
+          - s905x3-tox1
           - s905x3-tx3
           - s905x3-tx3-bz
           - s905x3-ugoosx3
@@ -207,10 +221,13 @@ on:
           - tpm312
           - tqc-a01
           - tvi3315a
+          - vontar-h618
           - vplus
           - wocyber-a3
           - wxy-oect
           - wxy-oect-mod
+          - x88pro20
+          - x98h
           - xiaobao
           - yskj
           - zcube1-max
@@ -226,12 +243,11 @@ on:
       fnnas_kernel:
         description: "Select fnnas kernel version"
         required: false
-        default: "6.12.y"
+        default: "6.18.y"
         type: choice
         options:
-          - 6.12.y
           - 6.18.y
-          - 6.12.y_6.18.y
+          - 6.12.y
       auto_kernel:
         description: "Auto use the latest kernel"
         required: false
@@ -432,16 +448,16 @@ jobs:
           builder_name: ${{ inputs.builder_name }}
 
       - name: Upload packaged FnNAS to Release
-        uses: ncipollo/release-action@main
+        uses: ophub/upload-to-release@main
         if: ${{ env.PACKAGED_STATUS == 'success' && !cancelled() }}
         with:
           tag: ${{ env.build_tag }}
           artifacts: ${{ env.PACKAGED_OUTPUTPATH }}/*
-          allowUpdates: true
-          removeArtifacts: false
-          replacesArtifacts: true
-          makeLatest: true
-          token: ${{ secrets.GITHUB_TOKEN }}
+          allow_updates: true
+          remove_artifacts: false
+          replaces_artifacts: true
+          make_latest: true
+          gh_token: ${{ secrets.GITHUB_TOKEN }}
           body: |
             - Built based on the fnnas.com [official Arm64 image](https://github.com/ophub/fnnas/releases/tag/fnnas_base_image),
               fully preserving the original official system experience.

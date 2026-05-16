@@ -1,6 +1,6 @@
 # 目录说明
 
-查看英文说明 | [View English description](README.md)
+[English Instructions](README.md) | [中文说明](README.cn.md)
 
 在相关目录中存储了编译 FnNAS 所需的文件。
 

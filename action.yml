@@ -116,20 +116,25 @@ runs:
         [[ "${down_file:0-4}" == ".zip" ]] && unzip -o ${down_file} 2>/dev/null && sync
         echo -e "FnNAS image files after decompression: \n$(ls -lh *.img 2>/dev/null)"
 
+        # Set builder custom signature
+        [[ -n "${{ inputs.builder_name }}" ]] && {
+            builder_name="${{ inputs.builder_name }}"
+            builder_name="${builder_name// /-}"
+        }
+
         if [[ "${build_target}" == "fnnas" ]]; then
             echo -e "Starting FnNAS system rebuild..."
 
             cd ${{ github.action_path }}
             echo -e "Building FnNAS system image..."
-            make_command=""
-            [[ -n "${{ inputs.fnnas_board }}" ]] && make_command="${make_command} -b ${{ inputs.fnnas_board }}"
-            [[ -n "${{ inputs.kernel_repo }}" ]] && make_command="${make_command} -r ${{ inputs.kernel_repo }}"
-            [[ -n "${{ inputs.fnnas_kernel }}" ]] && make_command="${make_command} -k ${{ inputs.fnnas_kernel }}"
-            [[ -n "${{ inputs.auto_kernel }}" ]] && make_command="${make_command} -a ${{ inputs.auto_kernel }}"
-            [[ -n "${{ inputs.fnnas_size }}" ]] && make_command="${make_command} -s ${{ inputs.fnnas_size }}"
-            [[ -n "${{ inputs.rootfs_expand }}" ]] && make_command="${make_command} -e ${{ inputs.rootfs_expand }}"
-            [[ -n "${{ inputs.builder_name }}" ]] && make_command="${make_command} -n ${{ inputs.builder_name }}"
-            read -r -a make_args <<< "${make_command}"
+            make_args=()
+            [[ -n "${{ inputs.fnnas_board }}"   ]] && make_args+=(-b "${{ inputs.fnnas_board }}")
+            [[ -n "${{ inputs.kernel_repo }}"   ]] && make_args+=(-r "${{ inputs.kernel_repo }}")
+            [[ -n "${{ inputs.fnnas_kernel }}"  ]] && make_args+=(-k "${{ inputs.fnnas_kernel }}")
+            [[ -n "${{ inputs.auto_kernel }}"   ]] && make_args+=(-a "${{ inputs.auto_kernel }}")
+            [[ -n "${{ inputs.fnnas_size }}"    ]] && make_args+=(-s "${{ inputs.fnnas_size }}")
+            [[ -n "${{ inputs.rootfs_expand }}" ]] && make_args+=(-e "${{ inputs.rootfs_expand }}")
+            [[ -n "${builder_name}"             ]] && make_args+=(-n "${builder_name}")
             sudo ./renas "${make_args[@]}"
 
         elif [[ "${build_target}" == "kernel" ]]; then
@@ -140,12 +145,11 @@ runs:
             [[ -d "${kernel_outpath}" ]] || mkdir -p ${kernel_outpath}
 
             cd ${{ github.action_path }}
-            make_command=""
-            [[ -n "${{ inputs.debs_repo }}" ]] && make_command="${make_command} -r ${{ inputs.debs_repo }}"
-            [[ -n "${{ inputs.debs_install }}" ]] && make_command="${make_command} -e ${{ inputs.debs_install }}"
-            [[ -n "${{ inputs.dtbs_install }}" ]] && make_command="${make_command} -t ${{ inputs.dtbs_install }}"
-            [[ -n "${{ inputs.dtbs_version }}" ]] && make_command="${make_command} -k ${{ inputs.dtbs_version }}"
-            read -r -a make_args <<< "${make_command}"
+            make_args=()
+            [[ -n "${{ inputs.debs_repo }}"    ]] && make_args+=(-r "${{ inputs.debs_repo }}")
+            [[ -n "${{ inputs.debs_install }}" ]] && make_args+=(-e "${{ inputs.debs_install }}")
+            [[ -n "${{ inputs.dtbs_install }}" ]] && make_args+=(-t "${{ inputs.dtbs_install }}")
+            [[ -n "${{ inputs.dtbs_version }}" ]] && make_args+=(-k "${{ inputs.dtbs_version }}")
             sudo ./rekernel "${make_args[@]}"
 
         else
